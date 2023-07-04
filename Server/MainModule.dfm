@@ -1,18 +1,10 @@
 object UniMainModule: TUniMainModule
   OldCreateOrder = True
-  OnCreate = UniGUIMainModuleCreate
   OnDestroy = UniGUIMainModuleDestroy
   Theme = 'gray'
   MonitoredKeys.Keys = <>
   Height = 589
   Width = 906
-  object RemoteDBDatabase1: TRemoteDBDatabase
-    Connected = False
-    UserName = 'remotedb'
-    Password = 'business'
-    Left = 155
-    Top = 48
-  end
   object tbISO: TClientDataSet
     PersistDataPacket.Data = {
       261A00009619E0BD010000001800000007007C000000030000008D0602696402

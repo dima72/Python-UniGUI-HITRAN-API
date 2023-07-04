@@ -1,14 +1,36 @@
+{
+MIT License
+
+Copyright (c) 2022 Dmitry Konnov RU
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+}
 unit MainModule;
 
 interface
 
 uses
-  uniGUIMainModule, SysUtils, Classes, Inifiles, RemoteDB.Client.Dataset,
-  RemoteDB.Client.Database, Data.DB, Datasnap.DBClient;
+  uniGUIMainModule, SysUtils, Classes, Inifiles,
+  Data.DB, Datasnap.DBClient;
 
 type
   TUniMainModule = class(TUniGUIMainModule)
-    RemoteDBDatabase1: TRemoteDBDatabase;
     tbISO: TClientDataSet;
     tbISOid: TSmallintField;
     tbISOmolecule_id: TSmallintField;
@@ -17,13 +39,11 @@ type
     tbISOabundance: TFloatField;
     tbISOmass: TFloatField;
     tbISOmol_name: TStringField;
-    procedure UniGUIMainModuleCreate(Sender: TObject);
     procedure UniGUIMainModuleDestroy(Sender: TObject);
   private
     FIniFile : TIniFile;
     { Private declarations }
   public
-    procedure CheckRemoteDBConnected;
     procedure LoadMoleculesList(pList : TStrings);
     procedure LoadIsotopList(pMoleculeName : string; pList : TStrings);
     procedure Get_M_I_Id(pMoleculeName : string; pIsotopologueName : string; var p_M : Integer; var p_I : Integer);
@@ -34,8 +54,6 @@ type
 procedure CheckError(pYes : Boolean; pMessage : string);
 function UniMainModule: TUniMainModule;
 
-var
-  GRemoteDBServerUri : string;
 implementation
 
 {$R *.dfm}
@@ -54,28 +72,9 @@ begin
   Result := TUniMainModule(UniApplication.UniMainModule)
 end;
 
-procedure TUniMainModule.UniGUIMainModuleCreate(Sender: TObject);
-var
-  aIniFN : string;
-begin
-  aIniFN := ExtractFilePath(Application.ExeName) + ChangeFileExt(ExtractFileName(Application.ExeName), '')+'.ini';
-  FIniFile := TIniFile.Create(aIniFN);
-  GRemoteDBServerUri := FIniFile.ReadString('RemoteDB', 'ServerUri', 'localhost:2002/tms/remotedb');
-end;
-
 procedure TUniMainModule.UniGUIMainModuleDestroy(Sender: TObject);
 begin
   FIniFile.Free;
-end;
-
-procedure TUniMainModule.CheckRemoteDBConnected;
-begin
-  if not RemoteDBDatabase1.Connected then
-  begin
-    RemoteDBDatabase1.ServerUri := GRemoteDBServerUri;
-    CheckError(Trim(RemoteDBDatabase1.ServerUri) <> '', 'RemoteDBServerUri is empty');
-    RemoteDBDatabase1.Connected := true;
-  end;
 end;
 
 procedure TUniMainModule.LoadMoleculesList(pList : TStrings);

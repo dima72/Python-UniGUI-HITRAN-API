@@ -32,12 +32,6 @@ object MainForm: TMainForm
       Action = acHitran
       TabOrder = 1
     end
-    object UniToolButton3: TUniToolButton
-      Left = 166
-      Top = 0
-      Action = acNasaGeomagForecast
-      TabOrder = 2
-    end
   end
   object UniDBGrid1: TUniDBGrid
     Left = 0
@@ -142,7 +136,6 @@ object MainForm: TMainForm
     end
     object acNasaGeomagForecast: TAction
       Caption = '    Nasa Geomagnetic Forecast    '
-      OnExecute = acNasaGeomagForecastExecute
     end
   end
   object DataSource1: TDataSource

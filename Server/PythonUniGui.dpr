@@ -9,7 +9,6 @@ uses
   HitranForm in 'HitranForm.pas' {HitranFrm: TUniForm},
   HitranChartForm in 'HitranChartForm.pas' {HitranChartFrm: TUniForm},
   AboutForm in 'AboutForm.pas' {AboutFrm: TUniForm},
-  NasaGeomagForecastForm in 'NasaGeomagForecastForm.pas' {NasaGeomagForecastFrm: TUniForm},
   IPC.Demo.Types in '..\HitranIPC\IPC.Demo.Types.pas',
   IPC in '..\HitranIPC\IPC.pas';
 

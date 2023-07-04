@@ -162,11 +162,6 @@
             <FormType>dfm</FormType>
             <DesignClass>TUniForm</DesignClass>
         </DCCReference>
-        <DCCReference Include="NasaGeomagForecastForm.pas">
-            <Form>NasaGeomagForecastFrm</Form>
-            <FormType>dfm</FormType>
-            <DesignClass>TUniForm</DesignClass>
-        </DCCReference>
         <DCCReference Include="..\HitranIPC\IPC.Demo.Types.pas"/>
         <DCCReference Include="..\HitranIPC\IPC.pas"/>
         <BuildConfiguration Include="Release">

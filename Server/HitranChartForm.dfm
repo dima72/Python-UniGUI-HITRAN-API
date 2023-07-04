@@ -25,6 +25,5 @@ object HitranChartFrm: THitranChartFrm
     TabOrder = 0
     ParentColor = False
     Color = clBtnFace
-    ExplicitLeft = 8
   end
 end
