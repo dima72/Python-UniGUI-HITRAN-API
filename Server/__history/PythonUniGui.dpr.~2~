@@ -1,0 +1,21 @@
+program PythonUniGui;
+
+uses
+  Forms,
+  ServerModule in 'ServerModule.pas' {UniServerModule: TUniGUIServerModule},
+  MainModule in 'MainModule.pas' {UniMainModule: TUniGUIMainModule},
+  Main in 'Main.pas' {MainForm: TUniForm},
+  PythonScripterForm in 'PythonScripterForm.pas' {PythonScripterFrm: TUniForm},
+  HitranForm in 'HitranForm.pas' {HitranFrm: TUniForm},
+  HitranChartForm in 'HitranChartForm.pas' {HitranChartFrm: TUniForm},
+  AboutForm in 'AboutForm.pas' {AboutFrm: TUniForm},
+  NasaGeomagForecastForm in 'NasaGeomagForecastForm.pas' {NasaGeomagForecastFrm: TUniForm};
+
+{$R *.res}
+
+begin
+  ReportMemoryLeaksOnShutdown := True;
+  Application.Initialize;
+  TUniServerModule.Create(Application);
+  Application.Run;
+end.

@@ -1,0 +1,145 @@
+unit Unit_Client;
+
+interface
+
+uses
+  Winapi.Windows,
+  Winapi.Messages,
+  System.SysUtils,
+  System.Variants,
+  System.Classes,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  Vcl.StdCtrls,
+  Vcl.ExtCtrls,
+  Vcl.ComCtrls,
+  IPC;
+
+type
+  TForm1 = class(TForm)
+    Button1: TButton;
+    Memo1: TMemo;
+    CheckBox1: TCheckBox;
+    Label1: TLabel;
+    edServerName: TEdit;
+    btnStartServer: TButton;
+    btnStopServer: TButton;
+    procedure Button1Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure btnStopServerClick(Sender: TObject);
+  private
+    { Private declarations }
+    FIPCClient: TIPCClient;
+    FIPCServerName : string;
+    FClientName : string;
+    ProcessInfo: TProcessInformation;
+    function CreateIPCServer(FileName: string; ShowCmd: DWORD; wait: Boolean): string;
+  public
+    { Public declarations }
+    procedure ClientRecieveResponseIpcData(Sender: TObject; var ResponseData: Pointer);
+  end;
+  procedure CheckError(p_Yes : Boolean; p_Message : string);
+
+var
+  Form1: TForm1;
+
+implementation
+
+uses
+  IPC.Demo.Types;
+{$R *.dfm}
+
+procedure CheckError(p_Yes : Boolean; p_Message : string);
+begin
+  if not p_Yes then raise Exception.Create(p_Message);
+end;
+
+procedure TForm1.ClientRecieveResponseIpcData(Sender: TObject; var ResponseData: Pointer);
+begin
+  Memo1.Lines.Add(TResponseData(ResponseData^).Text);
+  // MessageBoxW(0, TResponseData(ResponseData^).Text, 'IPC Client', 0);
+end;
+
+procedure TForm1.btnStopServerClick(Sender: TObject);
+begin
+  if not TerminateProcess(ProcessInfo.hProcess,4) then
+    ShowMessage('Server TerminateProcess failed');
+
+  if ProcessInfo.hProcess <> 0 then
+    CloseHandle(ProcessInfo.hProcess);
+  if ProcessInfo.hThread <> 0 then
+    CloseHandle(ProcessInfo.hThread);
+
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+var
+  Data: TData;
+  ResponseData: Pointer;
+begin
+  ResponseData := nil;
+  Data.ProcessId := GetCurrentProcessId;
+  Data.SetText(Memo1.Text);
+  if not FIPCClient.Send<TData>(FIPCServerName, Data, CheckBox1.Checked, 1000, ResponseData) then
+    Memo1.Lines.Add('Error send IPC data - ' + SysErrorMessage(FIPCClient.LastError));
+  if ResponseData <> nil then
+  begin
+    Memo1.Lines.Add(TResponseData(ResponseData^).Text);
+  end;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  FIPCClient := TIPCClient.Create(nil);
+  FClientName := 'IPCClient_' + IntToStr(GetCurrentProcessId);
+  if not FIPCClient.CreateClient(FClientName) then
+    Memo1.Lines.Add('Error create client "' + 'IPC Client' + '" - ' + SysErrorMessage(FIPCClient.LastError));
+  FIPCClient.OnRecieveResponseIpcData := ClientRecieveResponseIpcData;
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  FIPCClient.Free;
+  if ProcessInfo.hProcess <> 0 then
+  begin
+  CheckError(TerminateProcess(ProcessInfo.hProcess,4), 'IPC Server process fail to terminate');
+  if ProcessInfo.hProcess <> 0 then
+    CloseHandle(ProcessInfo.hProcess);
+  if ProcessInfo.hThread <> 0 then
+    CloseHandle(ProcessInfo.hThread);
+  end;
+end;
+
+function TForm1.CreateIPCServer(FileName: string; ShowCmd: DWORD; wait: Boolean): string;
+var
+  StartupInfo: TStartupInfo;
+  a_CmdLine, a_IPCServName : string;
+begin
+  FillChar(StartupInfo, SizeOf(StartupInfo), #0);
+  StartupInfo.cb := SizeOf(StartupInfo);
+  StartupInfo.dwFlags := STARTF_USESHOWWINDOW or STARTF_FORCEONFEEDBACK;
+  StartupInfo.wShowWindow := ShowCmd;
+  a_IPCServName := 'IPCServ' + IntToStr(GetCurrentProcessId);
+  a_CmdLine := FileName + ' ' + a_IPCServName + ' ' + FClientName;
+  if CreateProcess(nil, @a_CmdLine[1],
+    nil,
+    nil,
+    False,
+    CREATE_NEW_CONSOLE or
+    NORMAL_PRIORITY_CLASS,
+    nil,
+    nil,
+    StartupInfo,
+    ProcessInfo)
+    then
+    begin
+      Result := a_IPCServName;
+      FIPCClient.ListenServer;
+    end;
+end;
+
+end.
+

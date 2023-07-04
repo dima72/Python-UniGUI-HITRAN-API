@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{CFC87976-0CD9-4EA8-BBFE-0A41907E9979}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="PythonUniGui.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\HitranIPC\Hitran.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="PythonUniGui">
+        <MSBuild Projects="PythonUniGui.dproj"/>
+    </Target>
+    <Target Name="PythonUniGui:Clean">
+        <MSBuild Projects="PythonUniGui.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="PythonUniGui:Make">
+        <MSBuild Projects="PythonUniGui.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Hitran">
+        <MSBuild Projects="..\HitranIPC\Hitran.dproj"/>
+    </Target>
+    <Target Name="Hitran:Clean">
+        <MSBuild Projects="..\HitranIPC\Hitran.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="Hitran:Make">
+        <MSBuild Projects="..\HitranIPC\Hitran.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="PythonUniGui;Hitran"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="PythonUniGui:Clean;Hitran:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="PythonUniGui:Make;Hitran:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

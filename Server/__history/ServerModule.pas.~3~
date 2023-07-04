@@ -1,0 +1,302 @@
+unit ServerModule;
+
+interface
+
+uses
+  Classes, uniGUIServer, uniGUIMainModule, uniGUIApplication, uIdCustomHTTPServer,
+  uniGUITypes, System.SysUtils, uniGUIDialogs;
+  //VCL.TMSLogging, TMSLoggingUtils,
+  //TMSLoggingTextOutputHandler  TMSLogger - is optional
+
+type
+  TUniServerModule = class(TUniGUIServerModule)
+    procedure UniGUIServerModuleHTTPCommand(ARequestInfo: TIdHTTPRequestInfo;
+      AResponseInfo: TIdHTTPResponseInfo; var Handled: Boolean);
+    procedure UniGUIServerModuleServerStartup(Sender: TObject);
+    procedure UniGUIServerModuleException(Sender: TUniGUIMainModule;
+      AException: Exception; var Handled: Boolean);
+    procedure UniGUIServerModuleCreate(Sender: TObject);
+    procedure UniGUIServerModuleDestroy(Sender: TObject);
+  private
+    FBadIpsList : TStringList;
+    { Private declarations }
+  protected
+    procedure FirstInit; override;
+  public
+    { Public declarations }
+  end;
+  function Fetch(var AInput: string; ADelim: String): string;
+
+function UniServerModule: TUniServerModule;
+
+implementation
+
+{$R *.dfm}
+
+uses
+  UniGUIVars, MainModule;
+var
+  g_AppPath : string;
+  g_LogFileName : string;
+  logFile : TextFile;
+
+function UniServerModule: TUniServerModule;
+begin
+  Result:=TUniServerModule(UniGUIServerInstance);
+end;
+
+function Fetch(var AInput: string; ADelim: String): string;
+var
+  LPos: Integer;
+begin
+  LPos := Pos(ADelim, AInput);
+  if LPos = 0 then
+  begin
+    Result := AInput;
+    AInput := '';
+    Exit;
+  end;
+  Result := Copy(AInput, 1, LPos - 1);
+  AInput := Copy(AInput, LPos + Length(ADelim), Length(AInput));
+end;
+
+
+
+procedure TUniServerModule.FirstInit;
+begin
+  InitServerModule(Self);
+end;
+
+
+procedure TUniServerModule.UniGUIServerModuleHTTPCommand(
+  ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo;
+  var Handled: Boolean);
+var
+  a_Buf, a_Html, a_custom_header, a_param1, a_Host, a_chart_name, a_title : string;
+  SL, a_XpointSL, a_YpointSL : TStringList;
+  I, a_Found : Integer;
+  a_RootURLs : array[1..4] of string;
+  a_AllowedURI : boolean;
+  aMs :  TMemoryStream;
+begin
+
+  a_AllowedURI := true;
+  if SameText(ARequestInfo.URI, '/') then
+    a_AllowedURI := true;
+  if SameText(ARequestInfo.URI, '/bokeh_chart') then
+    a_AllowedURI := true;
+  if SameText(ARequestInfo.URI, '/chart.html') then
+    a_AllowedURI := true;
+  if SameText(ARequestInfo.URI, '/index.html') then
+    a_AllowedURI := true;
+  if Pos('/ext-7.5.1/build/', ARequestInfo.URI) > 0  then
+    a_AllowedURI := true;
+  if Pos('/uni-1.90.0.1564/', ARequestInfo.URI) > 0  then
+    a_AllowedURI := true;
+  if Pos('/cache/pythonunigui_exe/', ARequestInfo.URI) > 0  then
+    a_AllowedURI := true;
+  if Pos('/charts/', ARequestInfo.URI) > 0  then
+    a_AllowedURI := true;
+  if Pos('/images/', ARequestInfo.URI) > 0  then
+    a_AllowedURI := true;
+
+
+
+
+
+  if not a_AllowedURI then
+  begin
+    if SameText(ARequestInfo.URI, '/HandleEvent') then
+      Exit;
+
+   { TMSLogger.Warning('NOT ALLOWED URI: ' + ARequestInfo.URI);
+    TMSLogger.Warning('Referer: ' + ARequestInfo.Referer);
+    TMSLogger.Warning('RemoteIP: ' + ARequestInfo.RemoteIP);}
+    AResponseInfo.ResponseText := 'forbidden';
+    AResponseInfo.CloseSession;
+    Handled := true;
+    Exit;
+  end;
+
+//  if Pos('favicon.ico', ARequestInfo.URI) = 0 then
+//  begin
+//   TMSLogger.Trace('URI: ' + ARequestInfo.URI);
+//   TMSLogger.Trace('Referer: ' + ARequestInfo.Referer);
+//   TMSLogger.Trace('RemoteIP: ' + ARequestInfo.RemoteIP);
+//   TMSLogger.Trace('-----------------------------------');
+//  end;
+
+
+
+  a_Host := ARequestInfo.Host;
+  a_Found := 1;
+  {
+  if a_Host = 'localhost:8077' then
+    a_Found := 1;
+  if a_Host = 'www.localhost:8077' then
+    a_Found := 1;
+  if a_Host = 'konnovoptics.com' then
+    a_Found := 1;
+  if a_Host = 'www.konnovoptics.com' then
+    a_Found := 1;
+
+   }
+
+{  if (SameText(ARequestInfo.URI, '/') and (a_Found = 1)) and (SameText(ARequestInfo.Command, 'GET')) then
+  begin
+    Handled := True;
+    AResponseInfo.Redirect('index.html');
+    Exit;
+  end;
+}
+  if SameText(ARequestInfo.URI, '/server') then
+  begin
+    Handled := True;
+    Exit;
+  end;
+
+
+
+  if (SameText(ARequestInfo.URI, '/bokeh_chart')) and (SameText(ARequestInfo.Command, 'OPTIONS') ) then
+  begin
+    Handled := True;
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Expose-Headers', '"Location, Warning, Etag"');
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Allow-Origin-Headers', '"Accept, Content-Type, If-None-Match, X-If-None-Match"');
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Allow-Headers', '*');// '"Content-Type, If-None-Match, X-If-None-Match, Authorization"'
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Allow-Credentials', 'true');
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Allow-Methods', 'OPTIONS');//GET,POST, DELETE, HEAD, OPTIONS
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Max-Age', '86400');
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Allow-Origin', '*');
+    Exit;
+  end;
+  if (SameText(ARequestInfo.URI, '/bokeh_chart')) and (SameText(ARequestInfo.Command, 'POST')) then
+  begin
+
+    a_param1 := ARequestInfo.RawHeaders.Values['spectr'];
+
+    Handled := True;
+//    AResponseInfo.HeaderHasBeenWritten := true;
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Expose-Headers', '"Location, Warning, Etag"');
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Allow-Origin-Headers', '"Accept, Content-Type, If-None-Match, X-If-None-Match"');
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Allow-Headers', '*');// '"Content-Type, If-None-Match, X-If-None-Match, Authorization"'
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Allow-Credentials', 'true');
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Allow-Methods', 'POST');//GET,POST, DELETE, HEAD, OPTIONS
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Max-Age', '86400');
+    AResponseInfo.CustomHeaders.AddValue('Access-Control-Allow-Origin', '*');
+
+    {
+    SL := TStringList.Create;
+    a_XpointSL := TStringList.Create;
+    a_XpointSL.Delimiter := ',';
+    a_YpointSL := TStringList.Create;
+    a_YpointSL.Delimiter := ',';
+    }
+    aMs := TMemoryStream.Create();
+
+    //try
+      {if a_param1 = 'NH3' then
+        SL.LoadFromFile('NH3-HITRAN.txt');
+
+      for I := 0 to SL.Count-1 do
+      begin
+        a_Buf := SL.Strings[I];
+        a_XpointSL.Add(Trim(Fetch(a_Buf, ' ')));
+        a_YpointSL.Add(Trim(a_Buf));
+      end;
+      AResponseInfo.ContentText := '{ "x": ['+a_XpointSL.CommaText+'], "y": ['+a_YpointSL.CommaText+'] }//';}' +
+      aMs.LoadFromFile('NH3-HITRAN.txt');
+      AResponseInfo.ContentStream := aMs;
+      {
+    finally
+      a_XpointSL.Free;
+      a_YpointSL.Free;
+    end;
+       }
+
+    AResponseInfo.ContentType := 'Application/json';
+    Exit;
+  end;
+
+  if (SameText(ARequestInfo.URI, '/chart.html')) and (SameText(ARequestInfo.Command, 'GET')) then
+  begin
+
+     Handled := True;
+     //a_Buf := ARequestInfo.RawHTTPCommand;
+     //a_Buf := ARequestInfo.Params.Text; //spectr="NH3"
+     a_chart_name := ARequestInfo.Params.Values['chart'];// '{ ''spectr'': '''+ARequestInfo.Params.Values['chart']+''' }';
+     a_title := ARequestInfo.Params.Values['title'];
+     a_Html :=
+
+'<!doctype html>' + #$D#$A+
+'<html lang="en">' + #$D#$A+
+'<head>' + #$D#$A+
+'<meta charset="utf-8">' + #$D#$A+
+'<title>Complete Example</title>' + #$D#$A+
+'<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.3.min.js"></script>' + #$D#$A+
+'<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-gl-2.4.3.min.js"></script>' + #$D#$A+
+'<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.3.min.js"></script>' + #$D#$A+
+'<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.4.3.min.js"></script>' + #$D#$A+
+'<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-mathjax-2.4.3.min.js"></script>' + #$D#$A+
+'<script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-api-2.4.3.min.js"></script>' + #$D#$A+
+'<script>' + #$D#$A+
+'</script>' + #$D#$A+
+'<script>' + #$D#$A+                                        //http_headers : '+a_custom_header+'   ,'
+'const source = new Bokeh.AjaxDataSource({ method : "POST",' + #$D#$A+
+'    data: { x: [], y: [] }, data_url : "'+ARequestInfo.Referer+a_chart_name+'",});' + #$D#$A+
+'const plot = Bokeh.Plotting.figure({' + #$D#$A+
+'    title: "'+a_title+'",' + #$D#$A+
+'    tools: "pan,wheel_zoom,box_zoom,reset,save",' + #$D#$A+
+'    sizing_mode: "stretch_both",' + #$D#$A+
+'    height: 500,' + #$D#$A+
+'    width: 1000});' + #$D#$A+
+'plot.line({ field: "x" }, { field: "y" }, {source: source, line_width: 1});' + #$D#$A+
+'Bokeh.Plotting.show(plot);' + #$D#$A+
+'</script>' + #$D#$A+
+'</head>' + #$D#$A+
+'<body>' + #$D#$A+
+'</body>' + #$D#$A+
+'</html>';
+
+    AResponseInfo.ContentText := a_Html;
+    Exit;
+  end;
+
+end;
+
+
+procedure TUniServerModule.UniGUIServerModuleCreate(Sender: TObject);
+begin
+  FBadIpsList := TStringList.Create;
+  OnHTTPCommand := UniGUIServerModuleHTTPCommand;
+end;
+
+procedure TUniServerModule.UniGUIServerModuleDestroy(Sender: TObject);
+begin
+  FBadIpsList.Destroy;
+end;
+
+procedure TUniServerModule.UniGUIServerModuleException(
+  Sender: TUniGUIMainModule; AException: Exception; var Handled: Boolean);
+begin
+ //TMSLogger - is optional
+ // TMSLogger.Error(AException);
+  Handled := true;
+end;
+
+procedure TUniServerModule.UniGUIServerModuleServerStartup(Sender: TObject);
+begin
+   g_AppPath :=
+    ExcludeTrailingPathDelimiter(
+      StringReplace(ExtractFilePath(paramstr(0)), '"', '', [rfReplaceAll]));
+   g_LogFileName := g_AppPath + '\PythonUniGuiLog.txt';
+  { TMSLogger - is optional
+   TMSLogger.RegisterOutputHandlerClass(TTMSLoggerTextOutputHandler, [g_LogFileName]);
+   TMSLogger.Outputs := [loTimeStamp, loLogLevel, loValue];
+   TMSLogger.Trace('Start');
+   }
+end;
+
+initialization
+  RegisterServerModuleClass(TUniServerModule);
+
+end.

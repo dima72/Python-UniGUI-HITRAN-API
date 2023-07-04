@@ -1,0 +1,130 @@
+unit MainModule;
+
+interface
+
+uses
+  uniGUIMainModule, SysUtils, Classes, Inifiles, RemoteDB.Client.Dataset,
+  RemoteDB.Client.Database, Data.DB, Datasnap.DBClient;
+
+type
+  TUniMainModule = class(TUniGUIMainModule)
+    RemoteDBDatabase1: TRemoteDBDatabase;
+    tbISO: TClientDataSet;
+    tbISOid: TSmallintField;
+    tbISOmolecule_id: TSmallintField;
+    tbISOisotopologue_id: TSmallintField;
+    tbISOiso_name: TStringField;
+    tbISOabundance: TFloatField;
+    tbISOmass: TFloatField;
+    tbISOmol_name: TStringField;
+    procedure UniGUIMainModuleCreate(Sender: TObject);
+    procedure UniGUIMainModuleDestroy(Sender: TObject);
+  private
+    FIniFile : TIniFile;
+    { Private declarations }
+  public
+    procedure CheckRemoteDBConnected;
+    procedure LoadMoleculesList(pList : TStrings);
+    procedure LoadIsotopList(pMoleculeName : string; pList : TStrings);
+    procedure Get_M_I_Id(pMoleculeName : string; pIsotopologueName : string; var p_M : Integer; var p_I : Integer);
+
+
+    { Public declarations }
+  end;
+procedure CheckError(pYes : Boolean; pMessage : string);
+function UniMainModule: TUniMainModule;
+
+var
+  GRemoteDBServerUri : string;
+implementation
+
+{$R *.dfm}
+
+uses
+  UniGUIVars, ServerModule, uniGUIApplication, Forms;
+
+procedure CheckError(pYes : Boolean; pMessage : string);
+begin
+  if not pYes then
+    raise Exception.Create(pMessage);
+end;
+
+function UniMainModule: TUniMainModule;
+begin
+  Result := TUniMainModule(UniApplication.UniMainModule)
+end;
+
+procedure TUniMainModule.UniGUIMainModuleCreate(Sender: TObject);
+var
+  aIniFN : string;
+begin
+  aIniFN := ExtractFilePath(Application.ExeName) + ChangeFileExt(ExtractFileName(Application.ExeName), '')+'.ini';
+  FIniFile := TIniFile.Create(aIniFN);
+  GRemoteDBServerUri := FIniFile.ReadString('RemoteDB', 'ServerUri', 'localhost:2002/tms/remotedb');
+end;
+
+procedure TUniMainModule.UniGUIMainModuleDestroy(Sender: TObject);
+begin
+  FIniFile.Free;
+end;
+
+procedure TUniMainModule.CheckRemoteDBConnected;
+begin
+  if not RemoteDBDatabase1.Connected then
+  begin
+    RemoteDBDatabase1.ServerUri := GRemoteDBServerUri;
+    CheckError(Trim(RemoteDBDatabase1.ServerUri) <> '', 'RemoteDBServerUri is empty');
+    RemoteDBDatabase1.Connected := true;
+  end;
+end;
+
+procedure TUniMainModule.LoadMoleculesList(pList : TStrings);
+begin
+   pList.Clear;
+   tbISO.First;
+   while not tbISO.Eof do
+   begin
+     if pList.IndexOf(tbISO.FieldByName('mol_name').AsString) = -1 then
+       pList.Add(tbISO.FieldByName('mol_name').AsString);
+     tbISO.Next;
+   end;
+end;
+
+procedure TUniMainModule.LoadIsotopList(pMoleculeName : string; pList : TStrings);
+begin
+   pList.Clear;
+   tbISO.First;
+   while not tbISO.Eof do
+   begin
+     if tbISO.FieldByName('mol_name').AsString = pMoleculeName then
+     begin
+       if pList.IndexOf(tbISO.FieldByName('iso_name').AsString) = -1 then
+         pList.Add(tbISO.FieldByName('iso_name').AsString);
+     end;
+     tbISO.Next;
+   end;
+end;
+
+procedure TUniMainModule.Get_M_I_Id(pMoleculeName : string; pIsotopologueName : string; var p_M : Integer; var p_I : Integer);
+begin
+   p_M := 0;
+   p_I:= 0;
+   tbISO.First;
+   while not tbISO.Eof do
+   begin
+     if (tbISO.FieldByName('mol_name').AsString = pMoleculeName) and
+       (tbISO.FieldByName('iso_name').AsString = pIsotopologueName) then
+     begin
+       p_M := tbISO.FieldByName('molecule_id').AsInteger;
+       p_I := tbISO.FieldByName('isotopologue_id').AsInteger;
+       Exit;
+     end;
+     tbISO.Next;
+   end;
+end;
+
+
+initialization
+  RegisterMainModuleClass(TUniMainModule);
+end.
+

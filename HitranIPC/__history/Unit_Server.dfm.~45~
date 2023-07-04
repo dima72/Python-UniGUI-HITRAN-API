@@ -1,0 +1,122 @@
+object Form1: TForm1
+  Left = 260
+  Top = 127
+  Caption = 'IPC Server'
+  ClientHeight = 554
+  ClientWidth = 694
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = True
+  OnCreate = FormCreate
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Splitter1: TSplitter
+    Left = 0
+    Top = 161
+    Width = 694
+    Height = 3
+    Cursor = crVSplit
+    Align = alTop
+    ExplicitLeft = 8
+    ExplicitTop = 158
+  end
+  object Memo1: TMemo
+    Left = 0
+    Top = 164
+    Width = 694
+    Height = 309
+    Align = alTop
+    Lines.Strings = (
+      'from hapi import *'
+      'import numpy as np'
+      'import os'
+      'import json'
+      ''
+      
+        'def absorptionCoefficient_LorentzCalc(pClientId, pTableName, pDi' +
+        'luent, pDiluentValue, pMinWn, pMaxWn):'
+      #9'print(pClientId)'
+      #9'print(pTableName)'
+      #9'print(pDiluent)'
+      #9'a_DataPath = "HitranData/data"+str(pClientId)'
+      #9'if not os.path.exists(a_DataPath):      '
+      #9#9'os.makedirs(a_DataPath)'
+      #9#9'db_begin(a_DataPath)'
+      #9'fetch(pTableName,2,1,pMinWn,pMaxWn)'
+      
+        #9'a_Diluent = json.loads('#39'{"'#39' +pDiluent + '#39'":'#39' + str(pDiluentValu' +
+        'e) + '#39'}'#39')'
+      
+        #9'nu,coef = absorptionCoefficient_Lorentz(SourceTables= pTableNam' +
+        'e, Diluent= a_Diluent)'
+      #9'numax = np.max(coef)'
+      #9'coef =  coef/numax'
+      #9'nu_string = '#39','#39'.join(str(x) for x in nu)'
+      #9'coef_string = '#39','#39'.join(str(x) for x in coef)'
+      
+        #9'final = '#39'{ "x" : [ '#39' + nu_string +  '#39'], "y" :['#39'+ coef_string +'#39 +
+        ']}'#39
+      #9'a_ChartPath = a_DataPath + "/charts"'
+      #9'if not os.path.exists(a_ChartPath):      '
+      #9#9'os.makedirs(a_ChartPath)'
+      
+        #9'a_ChartFn = pClientId + "_" + pTableName+ "_" + str(pMinWn)+ "_' +
+        '" +str(pMaxWn) + "_Chart.txt"'
+      #9'with open(a_ChartPath + '#39'/'#39'+ a_ChartFn, "w") as text_file:'
+      #9'  print(final, file=text_file)'
+      #9'print('#39'OK'#39')'
+      ''
+      'print('#39'Script Initialized'#39')'
+      'print('#39'OK'#39')')
+    ScrollBars = ssVertical
+    TabOrder = 0
+    ExplicitLeft = 8
+    ExplicitTop = 206
+  end
+  object btnExecute: TButton
+    Left = 8
+    Top = 521
+    Width = 75
+    Height = 25
+    Caption = 'Execute'
+    TabOrder = 1
+    OnClick = btnExecuteClick
+  end
+  object cbDebugMemo: TCheckBox
+    Left = 104
+    Top = 529
+    Width = 97
+    Height = 17
+    Caption = 'Debug in Memo'
+    TabOrder = 2
+  end
+  object Memo2: TMemo
+    Left = 0
+    Top = 0
+    Width = 694
+    Height = 161
+    Align = alTop
+    Lines.Strings = (
+      '')
+    ScrollBars = ssVertical
+    TabOrder = 3
+  end
+  object PythonEngine1: TPythonEngine
+    AutoLoad = False
+    InitThreads = True
+    IO = PythonInputOutput1
+    Left = 56
+    Top = 48
+  end
+  object PythonInputOutput1: TPythonInputOutput
+    OnSendData = PythonInputOutput1SendData
+    UnicodeIO = False
+    RawOutput = False
+    Left = 152
+    Top = 48
+  end
+end

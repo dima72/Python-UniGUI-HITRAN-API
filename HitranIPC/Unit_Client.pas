@@ -1,0 +1,85 @@
+unit Unit_Client;
+
+interface
+
+uses
+  Winapi.Windows,
+  Winapi.Messages,
+  System.SysUtils,
+  System.Variants,
+  System.Classes,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  Vcl.StdCtrls,
+  Vcl.ExtCtrls,
+  Vcl.ComCtrls,
+  IPC;
+
+type
+  TForm1 = class(TForm)
+    btnSend: TButton;
+    Memo1: TMemo;
+    lblIPCServerName: TLabel;
+    procedure btnSendClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+  private
+    { Private declarations }
+    FIPCClient: TIPCClient;
+    FIPCServerName : string;
+  public
+    { Public declarations }
+    procedure ClientRecieveResponseIpcData(Sender: TObject; var ResponseData: Pointer);
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+uses
+  IPC.Demo.Types;
+{$R *.dfm}
+
+
+procedure TForm1.ClientRecieveResponseIpcData(Sender: TObject; var ResponseData: Pointer);
+begin
+  Memo1.Lines.Add(TResponseData(ResponseData^).Text);
+end;
+
+procedure TForm1.btnSendClick(Sender: TObject);
+var
+  Data: TData;
+  ResponseData: Pointer;
+begin
+  ResponseData := nil;
+  Data.ProcessId := GetCurrentProcessId;
+  Data.SetText(Memo1.Text);
+  if not FIPCClient.Send<TData>(FIPCServerName, Data, false, 1000, ResponseData) then
+    Memo1.Lines.Add('Error send IPC data - ' + SysErrorMessage(FIPCClient.LastError));
+  if ResponseData <> nil then
+  begin
+    Memo1.Lines.Add(TResponseData(ResponseData^).Text);
+  end;
+end;
+
+procedure TForm1.FormCreate(Sender: TObject);
+begin
+  FIPCClient := TIPCClient.Create(nil);
+  if not FIPCClient.CreateClient('IPCClient' + IntToStr(GetCurrentProcessId)) then
+    Memo1.Lines.Add('Error create client "' + 'IPC Client' + '" - ' + SysErrorMessage(FIPCClient.LastError));
+  FIPCClient.OnRecieveResponseIpcData := ClientRecieveResponseIpcData;
+  FIPCServerName := FIPCClient.CreateIPCServer('Server.exe', 'IPCServ' +IntToStr(GetCurrentProcessId), SW_SHOW, true);
+  lblIPCServerName.Caption := FIPCServerName;
+end;
+
+procedure TForm1.FormDestroy(Sender: TObject);
+begin
+  FIPCClient.Free;
+end;
+
+
+end.
+
