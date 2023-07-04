@@ -1,6 +1,5 @@
 # Python-UniGUI-HITRAN-API
- Python, UniGUI, HITRAN API
- 
+
 Python-UniGUI-HITRAN-API is a UniGUI web application,  
 which utilizes Python's HITRAN API for spectroscopy and allows to display  
 generated spectra in browser thanks to Bokeh JavaScript chart library. 
