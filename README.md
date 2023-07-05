@@ -1,7 +1,11 @@
 # Python-UniGUI-HITRAN-API
 
+HITRAN is an acronym for high-resolution transmission molecular absorption database. 
+HITRAN is a compilation of spectroscopic parameters that a variety of computer codes use to predict 
+and simulate the transmission and emission of light in the atmosphere.
+
 Python-UniGUI-HITRAN-API is a UniGUI web application,  
-which utilizes Python's HITRAN API for spectroscopy and allows to display  
+which utilizes Python's HITRAN API and allows to display  
 generated spectra in browser thanks to Bokeh JavaScript chart library. 
 
 Typically, Windows server host has Python and HITRAN API installed.  
@@ -21,3 +25,4 @@ Python4Delphi      https://github.com/pyscripter/python4delphi
 
 Python for windows must be installed
 PythonUniGui.exe and Hitran.exe must be running from the Python folder. e.g C:\Python
+HITRAN-API https://hitran.org/
