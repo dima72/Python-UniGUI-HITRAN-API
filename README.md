@@ -26,3 +26,6 @@ Python4Delphi      https://github.com/pyscripter/python4delphi
 Python for windows must be installed
 PythonUniGui.exe and Hitran.exe must be running from the Python folder. e.g C:\Python
 HITRAN-API https://hitran.org/
+
+![image](https://github.com/dima72/Python-UniGUI-HITRAN-API/assets/4633233/013d49ab-9d5c-46b4-be96-215f0f0aaa5d)
+
