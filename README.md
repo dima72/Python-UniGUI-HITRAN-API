@@ -20,8 +20,8 @@ PythonUniGui.exe:
 1) uniGUI components  http://unigui.com/download/docman </br> 
 2) bokeh-2.4.3.min    uploaded by browser from https://cdn.bokeh.org/bokeh/release/bokeh-2.4.3.min.js </br>
 
-Hitran.exe:
-Python4Delphi      https://github.com/pyscripter/python4delphi
+Hitran.exe:</br> 
+Python4Delphi      https://github.com/pyscripter/python4delphi</br> 
 
 Python for windows must be installed</br>
 PythonUniGui.exe and Hitran.exe must be running from the Python folder. e.g C:\Python</br>
