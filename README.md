@@ -17,15 +17,15 @@ user’s session in browser a standalone Python session on the server host.
 <b>Requirements:</b>
 
 PythonUniGui.exe:
-uniGUI components  http://unigui.com/download/docman
-bokeh-2.4.3.min    uploaded by browser from https://cdn.bokeh.org/bokeh/release/bokeh-2.4.3.min.js 
+1) uniGUI components  http://unigui.com/download/docman </br> 
+2) bokeh-2.4.3.min    uploaded by browser from https://cdn.bokeh.org/bokeh/release/bokeh-2.4.3.min.js </br>
 
 Hitran.exe:
 Python4Delphi      https://github.com/pyscripter/python4delphi
 
-Python for windows must be installed
-PythonUniGui.exe and Hitran.exe must be running from the Python folder. e.g C:\Python
-HITRAN-API https://hitran.org/
+Python for windows must be installed</br>
+PythonUniGui.exe and Hitran.exe must be running from the Python folder. e.g C:\Python</br>
+HITRAN-API https://hitran.org/</br>
 
 ![image](https://github.com/dima72/Python-UniGUI-HITRAN-API/assets/4633233/013d49ab-9d5c-46b4-be96-215f0f0aaa5d)
 
